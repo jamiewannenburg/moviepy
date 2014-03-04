@@ -162,6 +162,7 @@ class FFMPEG_VideoReader:
             self.proc.stdout.close()
             self.proc.stderr.close()
             del self.proc
+            self.proc = None
     
     def __del__(self):
         self.close_proc()

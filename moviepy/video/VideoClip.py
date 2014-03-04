@@ -10,7 +10,7 @@ import subprocess
 import multiprocessing
 from copy import copy
 from tqdm import tqdm
-
+from scipy.misc import imsave # for to_directory function
 
 import numpy as np
 
@@ -171,7 +171,7 @@ class VideoClip(Clip):
             imsave(picname, pic)
 
         print( "done." )
-        return DirectoryClip(foldername, fps=fps)
+        return True #DirectoryClip(foldername, fps=fps) #no longer defined?
 
 
 

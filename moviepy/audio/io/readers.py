@@ -48,7 +48,10 @@ class FFMPEG_AudioReader:
                 stdout=sp.PIPE,
                 stderr=sp.PIPE)
         proc.stdout.readline()
-        proc.terminate()
+        try:
+            proc.terminate()
+        except WindowsError:
+            pass
         infos = proc.stderr.read()
         if print_infos:
             # print the whole info text returned by FFMPEG
@@ -119,7 +122,11 @@ class FFMPEG_AudioReader:
         self.pos = pos
     
     def close(self):
-        self.proc.terminate()
+        
+        try:
+            self.proc.terminate()
+        except WindowsError:
+            pass
         for std in self.proc.stdin,self.proc.stdout,self.proc.stderr:
             std.close()
         del self.proc

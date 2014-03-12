@@ -18,8 +18,10 @@ from moviepy.video.VideoClip import VideoClip, ImageClip, ColorClip, TextClip
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 from moviepy.video.compositing.concatenate import concatenate
 
+
 from moviepy.audio.AudioClip import AudioClip
 from moviepy.audio.io.AudioFileClip import AudioFileClip
+from moviepy.video.compositing.MultiCam import MultiCam ###############
 
 # FX
 

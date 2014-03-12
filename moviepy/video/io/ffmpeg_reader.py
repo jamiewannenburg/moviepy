@@ -41,7 +41,10 @@ class FFMPEG_VideoReader:
                 stdout=sp.PIPE,
                 stderr=sp.PIPE)
         proc.stdout.readline()
-        proc.terminate()
+        try:
+            proc.terminate()
+        except WindowsError:
+            pass
         infos = proc.stderr.read()
         if print_infos:
             # print the whole info text returned by FFMPEG
@@ -70,7 +73,11 @@ class FFMPEG_VideoReader:
         self.nframes = int(self.duration*self.fps)
 
     def close(self):
-        self.proc.terminate()
+        
+        try:
+            self.proc.terminate()
+        except WindowsError:
+            pass
         for std in self.proc.stdin, self.proc.stdout, self.proc.stderr:
             std.close()
         del self.proc
@@ -93,7 +100,11 @@ class FFMPEG_VideoReader:
                              dtype='uint8').reshape((h, w, len(s)/(w*h)))
             self.proc.stdout.flush()
         except:
-            self.proc.terminate()
+            
+            try:
+                self.proc.terminate()
+            except WindowsError:
+                pass
             serr = self.proc.stderr.read()
             print "error: string: %s, stderr: %s" % (s, serr)
             raise

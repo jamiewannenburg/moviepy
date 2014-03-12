@@ -85,6 +85,10 @@ class CompositeVideoClip(VideoClip):
         """ Returns a list of the clips in the composite clips that are
             actually playing at the given time `t`. """
         return [c for c in self.clips if c.is_playing(t)]
+        
+    # def __del__(self):
+        # for clip in self.clips:
+            # del clip
 
 
 

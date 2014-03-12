@@ -54,20 +54,18 @@ class FFMPEG_VideoWriter:
             ['-b',bitrate] if (bitrate!=None) else []) + [
             '-r', "%d"%fps,
             filename ]
-        self.proc = sp.Popen(cmd,stdin=sp.PIPE,
-                                 stdout=sp.PIPE,
-                                 stderr=sp.PIPE)
+            
+        self.proc = sp.Popen(cmd,stdin=sp.PIPE, stderr=sp.PIPE)
         
     def write_frame(self,img_array):
-        #self.proc.stdin.write(img_array.tostring())
-        img_array.tofile(self.proc.stdin)
+        self.proc.stdin.write(img_array.tostring())
         
     def close(self):
         self.proc.stdin.close()
         self.proc.wait()
         del self.proc
         
-def ffmpeg_write(clip, filename, fps, codec="libx264", bitrate=None,
+def ffmpeg_write_video(clip, filename, fps, codec="libx264", bitrate=None,
                   withmask=False, verbose=True):
     
     if verbose:
@@ -77,7 +75,7 @@ def ffmpeg_write(clip, filename, fps, codec="libx264", bitrate=None,
     else:
         verbose_print = lambda *a : None
     
-    verbose_print("Rendering video %s\n"%filename)
+    verbose_print("\nWriting video into %s\n"%filename)
     writer = FFMPEG_VideoWriter(filename, clip.size, fps, codec = codec,
              bitrate=bitrate)
              
@@ -92,19 +90,27 @@ def ffmpeg_write(clip, filename, fps, codec="libx264", bitrate=None,
         writer.write_frame(frame.astype("uint8"))
     
     writer.close()
-    verbose_print("video done !")
+    verbose_print("Done writing video in %s !"%filename)
         
         
-def write_image(filename, image):
+def ffmpeg_write_image(filename, image):
     """ Writes an image (HxWx3 or HxWx4 numpy array) to a file, using
         ffmpeg. """
-    proc = sp.Popen([ FFMPEG_BINARY, '-y',
-            '-s', "%dx%d"%(image.shape[:2][::-1]),
-            "-f", 'rawvideo',
-            '-pix_fmt', "rgba" if (image.shape[2] == 4) else "rgb24",
-            '-i','-', filename],
-            stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
-    image.tofile(proc.stdin)
+    cmd = [ FFMPEG_BINARY, '-y',
+           '-s', "%dx%d"%(image.shape[:2][::-1]),
+           "-f", 'rawvideo',
+           '-pix_fmt', "rgba" if (image.shape[2] == 4) else "rgb24",
+           '-i','-', filename]
+           
+    proc = sp.Popen( cmd, stdin=sp.PIPE, stderr=sp.PIPE)
+    proc.stdin.write(image.tostring())
     proc.stdin.close()
     proc.wait()
+    
+    if proc.returncode:
+        err = "\n".join(["MoviePy running : %s"%cmd,
+                          "WARNING: this command returned an error:",
+                          proc.stderr.read().decode('utf8')])
+        raise IOError(err)
+    
     del proc

@@ -1,43 +1,54 @@
 import subprocess as sp
 import re
-import time
-import os
 
 import numpy as np
-
-#from moviepy.clip import Clip
 from moviepy.tools import cvsecs
 from moviepy.conf import FFMPEG_BINARY
-from moviepy.tools import cvsecs
 
     
 class FFMPEG_AudioReader:
-    """ streams any file (audio or video) and outputs a 16bit 44100HZ
-        wav that can be read by the moviepy AudioFileClip. """
+    """
+    A class to read the audio in either video files or audio files
+    using ffmpeg. ffmpeg will read any audio and transform them into
+    raw data.
+    
+    Parameters
+    ------------
+    
+    filename
+      Name of any video or audio file, like ``video.mp4`` or
+      ``sound.wav`` etc.
+      
+    bufsize
+      The size of the buffer to use. Should be bigger than the buffer
+      used by ``to_audiofile``
+    
+    print_infos
+      Print the ffmpeg infos on the file being read (for debugging)
+      
+    fps
+      Desired frames per second in the decoded signal that will be
+      received from ffmpeg
+      
+    nbytes
+      Desired number of bytes (1,2,4) in the signal that will be
+      received from ffmpeg
+          
+    """
         
-    def __init__(self, filename, print_infos=False, fps=44100, nbytes=2):
+    def __init__(self, filename, bufsize, print_infos=False,
+                 fps=44100, nbytes=2):
+                     
         self.filename = filename
         self.nbytes = nbytes
+        self.bufsize=bufsize
         self.fps = fps
         self.f = 's%dle'%(8*nbytes)
         self.acodec = 'pcm_s%dle'%(8*nbytes)
         self.nchannels = 2
         self.load_infos()
+        self.proc = None
         self.initialize()
-       
-    
-    def initialize(self):
-        """ Opens the file, creates the pipe. """
-        
-        cmd = [  FFMPEG_BINARY, '-i', self.filename, '-vn',
-               '-f', self.f,
-               '-acodec', self.acodec,
-               '-ar', "%d"%self.fps,
-               '-ac', '%d'%self.nchannels, '-']
-        self.proc = sp.Popen( cmd, stdin=sp.PIPE,
-                                   stdout=sp.PIPE,
-                                   stderr=sp.PIPE)
-        self.pos = 1
     
     def load_infos(self, print_infos=False):
         """ reads the FFMPEG info on the file and sets self.size
@@ -48,14 +59,13 @@ class FFMPEG_AudioReader:
                 stdout=sp.PIPE,
                 stderr=sp.PIPE)
         proc.stdout.readline()
-        try:
-            proc.terminate()
-        except WindowsError:
-            pass
-        infos = proc.stderr.read()
+        proc.terminate()
+        infos = proc.stderr.read().decode('utf8')
+
+>>>>>>> dd296029c192b8ac894b3ace4cf23d1468a59504
         if print_infos:
             # print the whole info text returned by FFMPEG
-            print infos
+            print( infos )
             
         lines = infos.splitlines()
         
@@ -70,34 +80,43 @@ class FFMPEG_AudioReader:
         self.nframes = int(self.duration*self.fps)
     
     
-    def reinitialize(self,starttime=0):
-        """ Restarts the reading, starts at an arbitrary
-            location (!! SLOW !!) """
-        self.close()
-        if starttime==0:
-            self.initialize()
-        else:
+    
+    def initialize(self, starttime = 0):
+        """ Opens the file, creates the pipe. """
+    
+        self.close_proc() # if any
+        
+        if starttime !=0 :
             offset = min(1,starttime)
-            cmd = [ FFMPEG_BINARY,
-                    "-ss", "%.05f"%(starttime-offset),
+            i_arg = ["-ss", "%.05f"%(starttime-offset),
                     '-i', self.filename, '-vn',
-                    "-ss", "%.05f"%offset,
-                    '-f', self.f,
-                    '-acodec', self.acodec,
-                    '-ar', "%d"%self.fps,
-                    '-ac', '%d'%self.nchannels, '-']
-            self.proc = sp.Popen(cmd, stdin=sp.PIPE,
-                                       stdout=sp.PIPE,
-                                      stderr=sp.PIPE)
-            self.pos = int(self.fps*starttime)+1
+                    "-ss", "%.05f"%offset]
+        else:
+            i_arg = [ '-i', self.filename,  '-vn']
+             
+        
+        cmd = ([FFMPEG_BINARY] + i_arg + 
+               ['-f', self.f,
+                '-acodec', self.acodec,
+                '-ar', "%d"%self.fps,
+                '-ac', '%d'%self.nchannels, '-'])
+        self.proc = sp.Popen( cmd, bufsize=self.bufsize,
+                                   stdout=sp.PIPE,
+                                   stderr=sp.PIPE)
+        self.pos = int(self.fps*starttime)
+     
+     
      
     def skip_chunk(self,chunksize):
         s = self.proc.stdout.read(self.nchannels*chunksize*self.nbytes)
         self.proc.stdout.flush()
         self.pos = self.pos+chunksize
         
+        
+        
     def read_chunk(self,chunksize):
-        s = self.proc.stdout.read(self.nchannels*chunksize*self.nbytes)
+        L = self.nchannels*chunksize*self.nbytes
+        s = self.proc.stdout.read(L)
         dt = {1: 'int8',2:'int16',4:'int32'}[self.nbytes]
         result = np.fromstring(s, dtype=dt)
         result = (1.0*result / 2**(8*self.nbytes-1)).\
@@ -108,36 +127,54 @@ class FFMPEG_AudioReader:
         return result
                     
     def seek(self,pos):
-        """ Reads a frame at time t. Note for coders:
-            getting an arbitrary frame in the video with ffmpeg can be
-            painfully slow if some decoding has to be done. This
-            function tries to avoid fectching arbitrary frames whenever
-            possible, by moving between adjacent frames.
-            """
+        """
+        Reads a frame at time t. Note for coders: getting an arbitrary
+        frame in the video with ffmpeg can be painfully slow if some
+        decoding has to be done. This function tries to avoid fectching
+        arbitrary frames whenever possible, by moving between adjacent
+        frames.
+        """
         if (pos < self.pos) or (pos> (self.pos+1000000)):
             t = 1.0*pos/self.fps
-            self.reinitialize(t)  
+            self.initialize(t)  
         elif pos > self.pos:
             self.skip_chunk(pos-self.pos)
+        # last case standing: pos = current pos
         self.pos = pos
     
+<<<<<<< HEAD
     def close(self):
-        
-        try:
-            self.proc.terminate()
-        except WindowsError:
-            pass
+        self.proc.terminate()
         for std in self.proc.stdin,self.proc.stdout,self.proc.stderr:
             std.close()
         del self.proc
         
         
         
+=======
+    def close_proc(self):
+        if self.proc is not None:
+            self.proc.terminate()
+            for std in [ self.proc.stdout,
+                         self.proc.stderr]:
+                std.close()
+            del self.proc
+            
+    def __del__(self):
+        self.close_proc()
+        del self.lastread
+>>>>>>> dd296029c192b8ac894b3ace4cf23d1468a59504
         
         
+
 class WaveReader:
+    """ DEPRECATED - Do not use if you can avoid. """
     
     def __init__(self, filename):
+        
+        import os
+        from moviepy.Clip import Clip
+        
         if not filename.endswith('.wav'):
             name, ext = os.path.splitext(os.path.basename(filename))
             if temp_wav is None:

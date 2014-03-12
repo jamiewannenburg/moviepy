@@ -7,24 +7,51 @@ import numpy as np
 
 pg.init()
 pg.display.set_caption('MoviePy')
+screen_width = pg.display.Info().current_w
+screen_height = pg.display.Info().current_h
+
+def get_click_info(event,img,t):
+    """
+    Example of a function to be passed into preview.
+    Arguments are pygame event, image and time.
+    Returns are appended and returned at the end of preview,
+    or if quit occurs.
+    """
+    if event.type == pg.MOUSEBUTTONDOWN:
+        x,y = pg.mouse.get_pos()
+        rgb = img[y,x]
+        print( "time, position, color : ", "%.03f, %s, %s"%(
+                     t,str((x,y)),str(rgb)))
+        return {'time':t, 'position':(x,y), 'color':rgb}
+    
 
 def imdisplay(imarray, screen=None):
-	""" splashes the given image array on the given pygame screen """
-	a = pg.surfarray.make_surface(imarray.swapaxes(0, 1))
-	if screen == None:
-		screen = pg.display.set_mode(imarray.shape[:2][::-1])
-	screen.blit(a, (0, 0))
-	pg.display.flip()
+    """Splashes the given image array on the given pygame screen """
+    a = pg.surfarray.make_surface(imarray.swapaxes(0, 1))
+    if screen == None:
+        if imarray.shape[1] >= screen_width or imarray.shape[0] >= screen_height:
+            screen = pg.display.set_mode([screen_width-100,screen_height-100])
+            
+        else:
+            screen = pg.display.set_mode(imarray.shape[:2][::-1])
+    a = pg.transform.scale(a,[screen.get_width(),screen.get_height()])
+    screen.blit(a, (0, 0))
+    pg.display.flip()
 
 
 def show(clip, t=0, with_mask=True):
     """
     Splashes the frame of clip corresponding to time ``t``.
     
-    :param t: time in seconds of the frame to display.
+    Parameters
+    ------------
     
-    :param with_mask: ``False`` if the clip has a mask but you
-         want to see the clip without the mask.
+    t
+      Time in seconds of the frame to display.
+    
+    with_mask
+      ``False`` if the clip has a mask but you want to see the clip
+      without the mask.
     
     """
 
@@ -38,7 +65,8 @@ def show(clip, t=0, with_mask=True):
 
 @requires_duration
 def preview(clip, fps=15, audio=True, audio_fps=22050,
-             audio_buffersize=3000, audio_nbytes=2):
+             audio_buffersize=3000, audio_nbytes=2,
+             func=get_click_info):
     """ 
     Displays the clip in a window, at the given frames per second
     (of movie) rate. It will avoid that the clip be played faster
@@ -46,14 +74,19 @@ def preview(clip, fps=15, audio=True, audio_fps=22050,
     than normal if the computations are complex. In this case, try
     reducing the ``fps``.
     
-    :param fps: Number of frames per second to be displayed.
-        
-    :param audio: ``True`` (default) if you want the clip's audio
-        to be played in playback. The synchronization is not garanteed.
-        
-    :param audiofps: The frames per second to use when generating the
-         audio sound. The lower, the cheaper the sound will be.
+    Parameters
+    ------------
     
+    fps
+      Number of frames per seconds in the displayed video.
+        
+    audio
+      ``True`` (default) if you want the clip's audio be played during
+      the preview.
+        
+    audiofps
+      The frames per second to use when generating the audio sound.
+      
     """
     
     import pygame as pg
@@ -61,8 +94,13 @@ def preview(clip, fps=15, audio=True, audio_fps=22050,
     if clip.ismask:
         clip = clip.to_RGB()
     
+    if clip.size[0] >= screen_width or clip.size[1] >= screen_height:
+        screen = pg.display.set_mode( [screen_width-100, screen_height-100])
+        
+    else:
+        screen = pg.display.set_mode(clip.size)
     # compute and splash the first image
-    screen = pg.display.set_mode(clip.size)
+    #screen = pg.display.set_mode(clip.size)
     
     audio = audio and (clip.audio != None)
     
@@ -99,22 +137,20 @@ def preview(clip, fps=15, audio=True, audio_fps=22050,
                     
                     if audio:
                         videoFlag.clear()
-                    print "Keyboard interrupt"
+                    print( "Keyboard interrupt" )
                     return result
                     
-            elif event.type == pg.MOUSEBUTTONDOWN:
-                x,y = pg.mouse.get_pos()
-                rgb = img[y,x]
-                result.append({'time':t, 'position':(x,y),
-                                'color':rgb})
-                print "time, position, color : ", "%.03f, %s, %s"%(
-                             t,str((x,y)),str(rgb))
+            ret = func(event,img,t)
+            if ret:
+                result.append(ret)
+            
                     
         t1 = time.time()
         time.sleep(max(0, t - (t1-t0)) )
         imdisplay(img, screen)
+    return result
 
-def image_preview(clip):
+def image_preview(clip,func=get_click_info):
     
     clip.show()
     result=[]
@@ -123,14 +159,12 @@ def image_preview(clip):
             if event.type == pg.KEYDOWN:
                 if (event.key == pg.K_ESCAPE):
                     videoFlag.clear()
-                    print "Keyboard interrupt"
+                    print( "Keyboard interrupt" )
                     return result
-            elif event.type == pg.MOUSEBUTTONDOWN:
-                 x,y = pg.mouse.get_pos()
-                 rgb = img[y,x]
-                 result.append({'time':t, 'position':(x,y),
-                            'color':rgb})
-                 print "time, position, color : ", "%.03f, %s, %s"%(
-                         t,str((x,y)),str(rgb))
+            ret = func(event,img,t)
+            if ret:
+                result.append(ret)
     return result
+    
+
     

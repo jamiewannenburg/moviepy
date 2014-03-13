@@ -62,7 +62,6 @@ class FFMPEG_AudioReader:
         proc.terminate()
         infos = proc.stderr.read().decode('utf8')
 
->>>>>>> dd296029c192b8ac894b3ace4cf23d1468a59504
         if print_infos:
             # print the whole info text returned by FFMPEG
             print( infos )
@@ -142,16 +141,6 @@ class FFMPEG_AudioReader:
         # last case standing: pos = current pos
         self.pos = pos
     
-<<<<<<< HEAD
-    def close(self):
-        self.proc.terminate()
-        for std in self.proc.stdin,self.proc.stdout,self.proc.stderr:
-            std.close()
-        del self.proc
-        
-        
-        
-=======
     def close_proc(self):
         if self.proc is not None:
             self.proc.terminate()
@@ -163,7 +152,8 @@ class FFMPEG_AudioReader:
     def __del__(self):
         self.close_proc()
         del self.lastread
->>>>>>> dd296029c192b8ac894b3ace4cf23d1468a59504
+        
+        
         
         
 

@@ -20,16 +20,10 @@ from .video.io.VideoFileClip import VideoFileClip
 from .video.VideoClip import VideoClip, ImageClip, ColorClip, TextClip
 from .video.compositing.CompositeVideoClip import CompositeVideoClip
 from .video.compositing.concatenate import concatenate
+from .video.compositing.MultiCam import MultiCam ###############
 
-<<<<<<< HEAD
-
-from moviepy.audio.AudioClip import AudioClip
-from moviepy.audio.io.AudioFileClip import AudioFileClip
-from moviepy.video.compositing.MultiCam import MultiCam ###############
-=======
 from .audio.AudioClip import AudioClip
-from .audio.io.AudioFileClip import AudioFileClip
->>>>>>> dd296029c192b8ac894b3ace4cf23d1468a59504
+from .audio.io.AudioFileClip import AudioFileClip]
 
 # FX
 

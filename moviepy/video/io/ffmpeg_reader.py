@@ -101,19 +101,6 @@ class FFMPEG_VideoReader:
         self.duration = cvsecs(*hms)
         self.nframes = int(self.duration*self.fps)
 
-<<<<<<< HEAD
-    def close(self):
-        
-        try:
-            self.proc.terminate()
-        except WindowsError:
-            pass
-        for std in self.proc.stdin, self.proc.stdout, self.proc.stderr:
-            std.close()
-        del self.proc
-
-=======
->>>>>>> dd296029c192b8ac894b3ace4cf23d1468a59504
     def skip_frames(self, n=1):
         """Reads and throws away n frames """
         w, h = self.size
@@ -134,19 +121,10 @@ class FFMPEG_VideoReader:
             result = np.fromstring(s,
                              dtype='uint8').reshape((h, w, len(s)//(w*h)))
             self.proc.stdout.flush()
-<<<<<<< HEAD
-        except:
-            
-            try:
-                self.proc.terminate()
-            except WindowsError:
-                pass
-=======
             
         except IOError:
             
             self.proc.terminate()
->>>>>>> dd296029c192b8ac894b3ace4cf23d1468a59504
             serr = self.proc.stderr.read()
             print( "error: string: %s, stderr: %s" % (s, serr))
             raise IOError

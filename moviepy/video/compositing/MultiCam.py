@@ -27,9 +27,11 @@ class MultiCam:
     
     :param times: list of lists where the first value is the time and the second is the camera number. If left empty or None the get_times function should be called before get_clip.
     
+    :param slowmo: dictionary where the keys are the index of the clip that is slowed down, the value is the amount it was slowed down.
+    
     :param *kwargs: The rest of the parameters are the optional arguments for the concatinate function.
     """
-    def __init__(self,clips,times=None,shift=[]):
+    def __init__(self,clips,times=None,shift=[],slowmo={}):
         ### TODO add audio settings here????
         self.shift = shift
         self.times = times
@@ -57,7 +59,7 @@ class MultiCam:
                     f1 = f1 + fp
                 self.filenames.append([f1,'.'+f_a[-1]])
                 
-        
+        self.slowmo = slowmo
         
     def load_clips(self):
         """ Load clips from filenames.
@@ -139,7 +141,7 @@ class MultiCam:
         self.shift = shift
         return shift
     
-    def get_clip(self,*args,**kargs):
+    def get_clip(self,**kargs):
         """
         """
         if self.times == None:
@@ -151,10 +153,15 @@ class MultiCam:
         for i,time in enumerate(self.times[:-1]):
             
             clip_start = time[0]
-            clip_end = self.times[i][0] 
+            clip_end = self.times[i+1][0] 
+            
+            if i in self.slowmo:
+                clip_start = clip_start*self.slowmo[i]
+                clip_end = clip_end*self.slowmo[i]
+            
             if time[1] > 0:
                 clip_start = clip_start - self.shift[time[1]-1]
-                clip_end = self.times[i][0] - self.shift[time[1]-1]
+                clip_end = self.times[i+1][0] - self.shift[time[1]-1]
             # round frames?
             if clip_start < 0:
                 clip_start = 0
@@ -167,7 +174,7 @@ class MultiCam:
                 
             clip_array.append(self.clips[time[1]].subclip(clip_start,clip_end))
             
-        return concatenate(clip_array,*args,**kargs)
+        return concatenate(clip_array,**kargs)
         
     def get_times(self):
         """
@@ -295,7 +302,6 @@ def get_file_structure(base_folder,cameras,extension='.MP4'):
     """
     structure = []
     for i,camera in enumerate(cameras):
-        #os.path.dirname(__file__)
         path = os.path.abspath(os.path.join(base_folder, camera)) 
         structure.append( [] )
         for f in sorted(os.listdir(path)):

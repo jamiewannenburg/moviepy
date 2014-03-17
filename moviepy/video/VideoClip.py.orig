@@ -114,7 +114,68 @@ class VideoClip(Clip):
             mask = 255 * self.mask.get_frame(t)
             im = np.dstack([im, mask]).astype('uint8')
         ffmpeg_write_image(filename, im)
+<<<<<<< HEAD
+        
+        
+
+    @requires_duration
+    def to_directory(self, foldername, fps, transparent=True,
+                     overwrite=True, startFrame=0):
+        """ Write the frames of the clip into a folder.
+        
+        Writes the frames of the clip into a folder as png format,
+        and returns the :class:DirectoryClip associated with this
+        folder
+        
+        Parameters
+        ----------
+        
+        foldername
+          Name of the folder (what did you expect ?)
+        
+        fps
+          Number of frames per second of movie.
+        
+        transparent
+          If `True`, the png images generated will possess an alpha
+          layer representing the mask of the clip.
+            
+        overwrite
+          If `True`, will overwrite the content of `folder`
+          if already existing.
+            
+        startFrame:
+          Useless for the moment, but may come in handy once
+          parallelization is fully implemented.
+        
+        """
+        print( "writing frames in [%s]" % foldername )
+
+        try:
+            os.mkdir(foldername)
+        except:
+            if not overwrite:
+                print( "Error: Maybe set overwrite =true ")
+
+        tt = np.arange(0, self.duration, 1.0 / fps)
+        tt_feedback = tt[::len(tt) / 10]
+
+        for i, t in tqdm(list(enumerate(tt))[startFrame:]):
+
+            picname = "%s/%s%06d.png" % (foldername, foldername, i)
+            pic = self.get_frame(t)
+            if transparent and (self.mask is not None):
+                fmask = self.mask.get_frame(t)
+                pic = np.dstack([pic, 255 * fmask]).astype('uint8')
+            imsave(picname, pic)
+
+        print( "done." )
+        return True #DirectoryClip(foldername, fps=fps) #no longer defined?
+
+
+=======
     
+>>>>>>> upstream/master
 
     def to_videofile(self, filename, fps=24, codec='libx264',
                  bitrate=None, audio=True, audio_fps=44100, 

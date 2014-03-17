@@ -36,7 +36,7 @@ class FFMPEG_VideoReader:
     def initialize(self, starttime=0):
         """Opens the file, creates the pipe. """
         
-        self.close_proc() # if any
+        self.close() # if any
         
         if starttime !=0 :
             offset = min(1,starttime)
@@ -48,7 +48,8 @@ class FFMPEG_VideoReader:
         
         
         cmd = ([FFMPEG_BINARY]+ i_arg +
-                ['-f', 'image2pipe',
+                ['-loglevel', 'error', 
+                '-f', 'image2pipe',
                 "-pix_fmt", self.pix_fmt,
                 '-vcodec', 'rawvideo', '-'])
         
@@ -67,7 +68,6 @@ class FFMPEG_VideoReader:
         # open the file in a pipe, provoke an error, read output
         proc = sp.Popen([FFMPEG_BINARY, "-i", self.filename, "-"],
                 bufsize=10**6,
-                stdin=sp.PIPE,
                 stdout=sp.PIPE,
                 stderr=sp.PIPE)
         proc.stdout.readline()
@@ -120,7 +120,7 @@ class FFMPEG_VideoReader:
             assert len(s) == nbytes
             result = np.fromstring(s,
                              dtype='uint8').reshape((h, w, len(s)//(w*h)))
-            self.proc.stdout.flush()
+            #self.proc.stdout.flush()
             
         except IOError:
             
@@ -158,7 +158,7 @@ class FFMPEG_VideoReader:
             self.pos = pos
             return result
     
-    def close_proc(self):
+    def close(self):
         if self.proc is not None:
             self.proc.terminate()
             self.proc.stdout.close()
@@ -167,7 +167,7 @@ class FFMPEG_VideoReader:
             self.proc = None
     
     def __del__(self):
-        self.close_proc()
+        self.close()
         del self.lastread
     
 

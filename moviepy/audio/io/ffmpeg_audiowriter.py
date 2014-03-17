@@ -45,13 +45,14 @@ class FFMPEG_AudioWriter:
         cmd = ([ FFMPEG_BINARY, '-y',
             "-f", 's%dle'%(8*nbytes),
             "-acodec",'pcm_s%dle'%(8*nbytes),
-            '-r', "%d"%fps_input,
+            '-ar', "%d"%fps_input,
             '-ac',"%d"%nchannels,
             '-i', '-']
             + (['-vn'] if input_video==None else
                  [ "-i", input_video, '-vcodec', 'copy'])
             + ['-acodec', codec]
-            + (['-b',bitrate] if (bitrate!=None) else [])
+            + ['-ar', "%d"%fps_input]
+            + (['-ab',bitrate] if (bitrate!=None) else [])
             + [ filename ])
         
         self.proc = sp.Popen(cmd,stdin=sp.PIPE, stderr=sp.PIPE)
@@ -62,6 +63,7 @@ class FFMPEG_AudioWriter:
         
     def close(self):
         self.proc.stdin.close()
+        self.proc.stderr.close()
         self.proc.wait()
         del self.proc
         
@@ -91,7 +93,7 @@ def ffmpeg_audiowrite(clip, filename, fps, nbytes, buffersize,
         nchunks = totalsize // buffersize + 1
         
     pospos = list(range(0, totalsize,  buffersize))+[totalsize]
-    for i in range(nchunks):
+    for i in tqdm(range(nchunks)):
         tt = (1.0/fps)*np.arange(pospos[i],pospos[i+1])
         sndarray = clip.to_soundarray(tt,nbytes)
         writer.write_frames(sndarray)

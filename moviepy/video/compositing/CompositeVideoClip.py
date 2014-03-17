@@ -53,11 +53,12 @@ class CompositeVideoClip(VideoClip):
         self.transparent = transparent
         self.bg_color = bg_color
         self.bg = ColorClip(size, col=self.bg_color).get_frame(0)
-
+        
         # compute duration
         ends = [c.end for c in self.clips]
         if not any([(e is None) for e in ends]):
             self.duration = max(ends)
+            self.end = max(ends)
 
         # compute audio
         audioclips = [v.audio for v in self.clips if v.audio != None]

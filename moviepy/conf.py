@@ -7,7 +7,7 @@ If you run this script file it will check that the
 path to the ffmpeg binary (FFMPEG_BINARY)
 """
 
-FFMPEG_BINARY = None
+FFMPEG_BINARY = '/home/alta/Bridgestone/ffmpeg'
 
 
 

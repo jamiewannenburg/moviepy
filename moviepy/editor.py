@@ -9,6 +9,9 @@ folders and turn them into VideoClip methods, so that instead of
 >>> clip.fx( vfx.resize, 2 ) # or equivalently vfx.resize(clip, 2)
 we can write
 >>> clip.resize(2)
+
+It also starts a PyGame session (if PyGame is installed) and enables
+clip.preview().
 """
 
 # Note that these imports could have been performed in the __init__.py
@@ -22,7 +25,7 @@ from .video.compositing.CompositeVideoClip import CompositeVideoClip
 from .video.compositing.concatenate import concatenate
 from .video.compositing.MultiCam import MultiCam ###############
 
-from .audio.AudioClip import AudioClip
+from .audio.AudioClip import AudioClip, CompositeAudioClip
 from .audio.io.AudioFileClip import AudioFileClip]
 
 # FX
@@ -62,4 +65,35 @@ for method in ["vfx.crop",
 for method in ["afx.audio_fadein",
                "afx.audio_fadeout"]:
     exec("AudioClip.%s = %s"%( method.split('.')[1], method))
+
+
+#-----------------------------------------------------------------
+# Previews: try to import pygame
+
+
+# Add methods preview and show (only if pygame installed)
+try:
+    from moviepy.video.io.preview import show, preview
+except ImportError:
+    def preview(self, *args, **kwargs):
+        """ NOT AVAILABLE : clip.preview requires Pygame installed  """
+        raise ImportError("clip.preview requires Pygame installed")
+    def show(self, *args, **kwargs):
+        """ NOT AVAILABLE : clip.show requires Pygame installed  """
+        raise ImportError("clip.show requires Pygame installed")
+
+
+VideoClip.preview = preview
+VideoClip.show = show
+
+try:
+    from moviepy.audio.io.preview import preview
+except ImportError:
+    def preview(self, *args, **kwargs):
+        """ NOT AVAILABLE : clip.preview requires Pygame installed  """
+        raise ImportError("clip.preview requires Pygame installed")
+
+AudioClip.preview = preview
+
+        
 

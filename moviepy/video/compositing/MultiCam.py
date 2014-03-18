@@ -281,6 +281,11 @@ def check_sizes(base_folder,cameras,extension = '.MP4', tollerance=0.7, raise_er
                         elif ret == 'n' or ret == 'N':
                             return False
     return True
+    
+    def __del__(self):
+        if self.clips != None:
+            for clip in self.clips:
+                del clip.reader
 
 def check_files(base_folder,cameras,extension = '.MP4',raise_error=True):
     """
@@ -391,3 +396,4 @@ def get_time(event,img,t):
         x,y = pg.mouse.get_pos()
         print t
         return [t]
+

@@ -71,3 +71,9 @@ class VideoFileClip(VideoClip):
                                        buffersize= audio_buffersize,
                                        fps = audio_fps,
                                        nbytes = audio_nbytes)
+                                       
+    #def __del__(self):
+    #    print self.reader.proc
+    #    self.reader.proc.terminate()
+        #self.reader.close()
+        #del self.reader

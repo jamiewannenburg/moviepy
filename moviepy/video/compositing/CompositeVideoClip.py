@@ -88,9 +88,9 @@ class CompositeVideoClip(VideoClip):
             actually playing at the given time `t`. """
         return [c for c in self.clips if c.is_playing(t)]
         
-    # def __del__(self):
-        # for clip in self.clips:
-            # del clip
+#    def __del__(self):
+#        for clip in self.clips:
+#            clip.reader.close()
 
 
 

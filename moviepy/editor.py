@@ -26,7 +26,7 @@ from .video.compositing.concatenate import concatenate
 from .video.compositing.MultiCam import MultiCam ###############
 
 from .audio.AudioClip import AudioClip, CompositeAudioClip
-from .audio.io.AudioFileClip import AudioFileClip]
+from .audio.io.AudioFileClip import AudioFileClip
 
 # FX
 

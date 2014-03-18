@@ -115,6 +115,8 @@ class VideoClip(Clip):
             im = np.dstack([im, mask]).astype('uint8')
         ffmpeg_write_image(filename, im)
     
+#    def __del__(self):
+#        self.reader.close()
 
     def to_videofile(self, filename, fps=24, codec='libx264',
                  bitrate=None, audio=True, audio_fps=44100, 

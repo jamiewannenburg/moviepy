@@ -91,7 +91,7 @@ class MultiCam:
         else:
             clip = AudioFileClip(self.filenames[0][0]+self.filenames[0][1])
             data = clip.to_soundarray(fps=fps, nbytes=nbytes)[0] #### is this right
-            del clip ############### maak seker
+            del clip.reader ############### maak seker
         
         if low_memory:
             reference = np.memmap(self.filenames[0][0]+'.dat', dtype='int16', mode='w+',shape=data.shape)
@@ -122,7 +122,7 @@ class MultiCam:
             else:
                 clip = AudioClip(self.filenames[i][0]+self.filenames[i][1])
                 data = clip.to_soundarray(fps=fps, nbytes=nbytes)[0]
-                del clip
+                del clip.reader
                 
             if low_memory:
                 to_sync = np.memmap(self.filenames[i][0]+'.dat', dtype='int16', mode='w+',shape=data.shape)
@@ -282,10 +282,10 @@ def check_sizes(base_folder,cameras,extension = '.MP4', tollerance=0.7, raise_er
                             return False
     return True
     
-    def __del__(self):
-        if self.clips != None:
-            for clip in self.clips:
-                del clip.reader
+#    def __del__(self):
+#        if self.clips != None:
+#            for clip in self.clips:
+#                clip.reader.close()
 
 def check_files(base_folder,cameras,extension = '.MP4',raise_error=True):
     """

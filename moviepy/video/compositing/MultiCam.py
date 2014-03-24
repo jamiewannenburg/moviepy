@@ -91,7 +91,7 @@ class MultiCam:
         else:
             clip = AudioFileClip(self.filenames[0][0]+self.filenames[0][1])
             data = clip.to_soundarray(fps=fps, nbytes=nbytes)[0] #### is this right
-            del clip.reader ############### maak seker
+            clip.reader.close_proc() ############### maak seker
         
         if low_memory:
             reference = np.memmap(self.filenames[0][0]+'.dat', dtype='int16', mode='w+',shape=data.shape)
@@ -154,14 +154,13 @@ class MultiCam:
             
             clip_start = time[0]
             clip_end = self.times[i+1][0] 
-            
             if i in self.slowmo:
                 clip_start = clip_start*self.slowmo[i]
                 clip_end = clip_end*self.slowmo[i]
             
             if time[1] > 0:
                 clip_start = clip_start - self.shift[time[1]-1]
-                clip_end = self.times[i+1][0] - self.shift[time[1]-1]
+                clip_end = clip_end - self.shift[time[1]-1]
             # round frames?
             if clip_start < 0:
                 clip_start = 0
@@ -194,6 +193,13 @@ class MultiCam:
             
         self.times = times
         return times
+        
+    def close(self):
+        if self.clips != None:
+            for c in self.clips:
+                c.reader.close()
+                if c.audio:
+                    c.audio.reader.close_proc()
         
 # is hierdie nodig? Hy laai hom inelkgeval in memory...
 def write_audio(filename,fps,nbytes,overwrite=False):
@@ -359,8 +365,8 @@ def get_shift(reference,to_sync,sr,low_memory=False,max_shift=0.33333):
     try:
         if low_memory:
             tmp_dir = mkdtemp()
-            l1f = path.join(tmp_dir, 'l1.dat')
-            l2f = path.join(tmp_dir, 'l2.dat')
+            l1f = os.path.join(tmp_dir, 'l1.dat')
+            l2f = os.path.join(tmp_dir, 'l2.dat')
             l1 = np.memmap(l1f, dtype='int16', mode='w+',shape=(mylength))
             np.put(l1,range(mylength),reference)
     

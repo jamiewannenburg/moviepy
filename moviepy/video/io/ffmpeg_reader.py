@@ -167,9 +167,9 @@ class FFMPEG_VideoReader:
             del self.proc
             self.proc = None
     
-    def __del__(self):
-        self.close()
-        del self.lastread
+    #def __del__(self):
+    #    self.close()
+    #    del self.lastread
     
 
 

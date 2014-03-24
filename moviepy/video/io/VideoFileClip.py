@@ -55,7 +55,7 @@ class VideoFileClip(VideoClip):
         
         # Make a reader
         pix_fmt= "rgba" if has_mask else "rgb24"
-        self.reader = FFMPEG_VideoReader(filename, pix_fmt=pix_fmt)
+        self.reader = FFMPEG_VideoReader(filename, pix_fmt=pix_fmt,print_infos=verbose)
         
         # Make some of the reader's attributes accessible from the clip
         self.duration = self.reader.duration
